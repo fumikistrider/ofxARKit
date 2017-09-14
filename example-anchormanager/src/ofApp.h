@@ -31,6 +31,7 @@ public:
     void deviceOrientationChanged(int newOrientation);
     
     void audioIn( float * input, int bufferSize, int nChannels );
+    void audioOut( float * output, int bufferSize, int nChannels );
 
     
     ofTrueTypeFont font;

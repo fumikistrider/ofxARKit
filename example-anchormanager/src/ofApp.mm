@@ -60,7 +60,7 @@ void ofApp::setup() {
     
     // Setup sound
     sampleRate = 44100;
-    ofSoundStreamSetup(0, 1, this, sampleRate, LENGTH, 4);
+    ofSoundStreamSetup(1, 1, this, sampleRate, LENGTH, 4);
     mode = 0;
     recPos = 0;
     playPos = 0;
@@ -129,8 +129,9 @@ void ofApp::draw() {
     font.drawString("frame rate     = " + ofToString( ofGetFrameRate() ),   x, y+=p);
     font.drawString("screen width   = " + ofToString( ofGetWidth() ),       x, y+=p);
     font.drawString("screen height  = " + ofToString( ofGetHeight() ),      x, y+=p);
-    font.drawString("audio in       = " + ofToString( recPos ),            x, y+=p);
-    
+    font.drawString("audio In       = " + ofToString( recPos ),             x, y+=p);
+    font.drawString("audio Out      = " + ofToString( playPos ),            x, y+=p);
+
 }
 
 //--------------------------------------------------------------
@@ -170,6 +171,22 @@ void ofApp::audioIn(float *input, int bufferSize, int nChannels){
                 recPos++;
             }else{
                 recPos = 0;
+            }
+        }
+    }
+}
+
+//--------------------------------------------------------------
+void ofApp::audioOut(float *output, int bufferSize, int nChannels){
+    
+    if( mode == 2 ){
+        for(int i = 0; i < bufferSize * nChannels; i++) {
+            if(playPos<LENGTH) {
+                output[i] = buffer[playPos];
+                playPos++;
+            }else{
+                playPos= 0; // LOOP
+                // mode = 0; // RESET
             }
         }
     }
