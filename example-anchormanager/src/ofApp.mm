@@ -61,7 +61,7 @@ void ofApp::setup() {
     // Setup sound
     sampleRate = 44100;
     ofSoundStreamSetup(0, 1, this, sampleRate, LENGTH, 4);
-    mode = 2;
+    mode = 0;
     recPos = 0;
     playPos = 0;
     
@@ -129,7 +129,7 @@ void ofApp::draw() {
     font.drawString("frame rate     = " + ofToString( ofGetFrameRate() ),   x, y+=p);
     font.drawString("screen width   = " + ofToString( ofGetWidth() ),       x, y+=p);
     font.drawString("screen height  = " + ofToString( ofGetHeight() ),      x, y+=p);
-    
+    font.drawString("audio in       = " + ofToString( recPos ),            x, y+=p);
     
 }
 
@@ -140,6 +140,7 @@ void ofApp::exit() {
 
 //--------------------------------------------------------------
 void ofApp::touchDown(ofTouchEventArgs &touch){
+    mode = 1;
     anchors->addAnchor(ofVec2f(touch.x,touch.y));
 }
 
@@ -150,7 +151,8 @@ void ofApp::touchMoved(ofTouchEventArgs &touch){
 
 //--------------------------------------------------------------
 void ofApp::touchUp(ofTouchEventArgs &touch){
-    
+    mode = 2;
+    playPos = 0;
 }
 
 //--------------------------------------------------------------
@@ -161,6 +163,16 @@ void ofApp::touchDoubleTap(ofTouchEventArgs &touch){
 //--------------------------------------------------------------
 void ofApp::audioIn(float *input, int bufferSize, int nChannels){
     
+    if( mode == 1){
+        for( int i = 0; i < bufferSize * nChannels; i++){
+            if(recPos < LENGTH){
+                buffer[recPos] = input[i];
+                recPos++;
+            }else{
+                recPos = 0;
+            }
+        }
+    }
 }
 
 //--------------------------------------------------------------
