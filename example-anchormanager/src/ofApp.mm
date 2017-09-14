@@ -57,6 +57,10 @@ void ofApp::setup() {
     processor->setup();
     
     anchors = ARCore::ARAnchorManager::create(session);
+
+    // Collision
+    hitCount = 0;
+    lastHitCount = 0;
     
     // Setup sound
     sampleRate = 44100;
@@ -90,27 +94,56 @@ void ofApp::draw() {
     ofDisableDepthTest();
     processor->draw();
     ofEnableDepthTest();
-    
+
+    hitCount = 0;
     // This loops through all of the added anchors.
     anchors->loopAnchors([=](ARObject obj) -> void {
        
         camera.begin();
         processor->setARCameraMatrices();
-        
         ofPushMatrix();
         ofMultMatrix(obj.modelMatrix);
+
+        ofVec3f cameraPos = processor->getCameraTransformMatrix().getTranslation();
+        ofVec3f objPos    = obj.modelMatrix.getTranslation();
         
-        ofSetColor(255);
+        cout << "-----" << endl;
+        cout << "CAMERA = " << cameraPos << endl;
+        cout << "OBJ    = " << objPos    << endl;
+        cout << " (DIST)= " << ofDist(cameraPos.x, cameraPos.y, cameraPos.z, objPos.x, objPos.y, objPos.z)    << endl;
+        cout << "-----" << endl;
+        
         ofRotate(90,0,0,1);
         ofScale(0.0001, 0.0001);
+
+        if( ofDist(cameraPos.x, cameraPos.y, cameraPos.z, objPos.x, objPos.y, objPos.z) < 0.05 ){
+            ofSetColor(255, 255, 0, 255);
+            hitCount++;
+        }else{
+            ofSetColor(255);
+        }
         img.draw(0,0);
+        ofSetColor(255);
 
         ofPopMatrix();
         
         camera.end();
         
     });
+
+    if( mode != 1 && hitCount != lastHitCount ){
+        
+        if( hitCount > 0){
+            playPos = 0;
+            mode = 2;
+        }else{
+            mode = 0;
+            playPos = 0;
+        }
+        
+    }
     
+    lastHitCount = hitCount;
     
     ofDisableDepthTest();
     // ========== DEBUG STUFF ============= //
@@ -131,6 +164,9 @@ void ofApp::draw() {
     font.drawString("screen height  = " + ofToString( ofGetHeight() ),      x, y+=p);
     font.drawString("audio In       = " + ofToString( recPos ),             x, y+=p);
     font.drawString("audio Out      = " + ofToString( playPos ),            x, y+=p);
+    font.drawString("play mode      = " + ofToString( mode ),               x, y+=p);
+    font.drawString("hit count      = " + ofToString( hitCount ),           x, y+=p);
+    font.drawString("last hit count = " + ofToString( lastHitCount ),       x, y+=p);
 
 }
 
@@ -142,6 +178,7 @@ void ofApp::exit() {
 //--------------------------------------------------------------
 void ofApp::touchDown(ofTouchEventArgs &touch){
     mode = 1;
+    recPos = 0;
     anchors->addAnchor(ofVec2f(touch.x,touch.y));
 }
 
@@ -152,13 +189,15 @@ void ofApp::touchMoved(ofTouchEventArgs &touch){
 
 //--------------------------------------------------------------
 void ofApp::touchUp(ofTouchEventArgs &touch){
-    mode = 2;
+
+    mode = 0;
     playPos = 0;
+
 }
 
 //--------------------------------------------------------------
 void ofApp::touchDoubleTap(ofTouchEventArgs &touch){
-    
+    mode = 0;
 }
 
 //--------------------------------------------------------------
@@ -186,11 +225,11 @@ void ofApp::audioOut(float *output, int bufferSize, int nChannels){
                 playPos++;
             }else{
                 playPos= 0; // LOOP
-                // mode = 0; // RESET
             }
         }
     }
 }
+
 
 //--------------------------------------------------------------
 void ofApp::lostFocus(){

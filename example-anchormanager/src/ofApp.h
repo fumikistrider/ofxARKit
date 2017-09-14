@@ -33,7 +33,6 @@ public:
     void audioIn( float * input, int bufferSize, int nChannels );
     void audioOut( float * output, int bufferSize, int nChannels );
 
-    
     ofTrueTypeFont font;
     
     
@@ -43,6 +42,10 @@ public:
     ARRef processor;
     
     ofImage img;
+    
+    // Collision
+    int hitCount;
+    int lastHitCount;
     
     // Sound
     float buffer[LENGTH]; // 録音バッファ

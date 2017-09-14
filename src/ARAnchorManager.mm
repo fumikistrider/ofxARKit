@@ -78,7 +78,7 @@ namespace ARCore {
             
             // multiply translation by current camera position
             matrix_float4x4 transform = matrix_multiply(session.currentFrame.camera.transform, translation);
-            
+
             // Add a new anchor to the session
             ARAnchor *anchor = [[ARAnchor alloc] initWithTransform:transform];
             
