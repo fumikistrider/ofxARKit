@@ -58,8 +58,12 @@ void ofApp::setup() {
     
     anchors = ARCore::ARAnchorManager::create(session);
     
-    
-    
+    // Setup sound
+    sampleRate = 44100;
+    ofSoundStreamSetup(0, 1, this, sampleRate, LENGTH, 4);
+    mode = 2;
+    recPos = 0;
+    playPos = 0;
     
 }
 
@@ -87,7 +91,6 @@ void ofApp::draw() {
     processor->draw();
     ofEnableDepthTest();
     
-    
     // This loops through all of the added anchors.
     anchors->loopAnchors([=](ARObject obj) -> void {
        
@@ -101,14 +104,14 @@ void ofApp::draw() {
         ofRotate(90,0,0,1);
         ofScale(0.0001, 0.0001);
         img.draw(0,0);
-        
+
         ofPopMatrix();
         
         camera.end();
         
     });
     
-
+    
     ofDisableDepthTest();
     // ========== DEBUG STUFF ============= //
     int w = MIN(ofGetWidth(), ofGetHeight()) * 0.6;
@@ -127,7 +130,6 @@ void ofApp::draw() {
     font.drawString("screen width   = " + ofToString( ofGetWidth() ),       x, y+=p);
     font.drawString("screen height  = " + ofToString( ofGetHeight() ),      x, y+=p);
     
-
     
 }
 
@@ -153,6 +155,11 @@ void ofApp::touchUp(ofTouchEventArgs &touch){
 
 //--------------------------------------------------------------
 void ofApp::touchDoubleTap(ofTouchEventArgs &touch){
+    
+}
+
+//--------------------------------------------------------------
+void ofApp::audioIn(float *input, int bufferSize, int nChannels){
     
 }
 

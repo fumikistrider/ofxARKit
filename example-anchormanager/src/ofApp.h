@@ -3,6 +3,9 @@
 #include "ofxiOS.h"
 #include <ARKit/ARKit.h>
 #include "ofxARKit.h"
+
+#define LENGTH 44100 * 3
+
 class ofApp : public ofxiOSApp {
     
 public:
@@ -26,6 +29,8 @@ public:
     void gotFocus();
     void gotMemoryWarning();
     void deviceOrientationChanged(int newOrientation);
+    
+    void audioIn( float * input, int bufferSize, int nChannels );
 
     
     ofTrueTypeFont font;
@@ -37,6 +42,14 @@ public:
     ARRef processor;
     
     ofImage img;
+    
+    // Sound
+    float buffer[LENGTH]; // 録音バッファ
+    int sampleRate;       // サンプリングレート
+    int recPos;           // 録音位置
+    int playPos;          // 再生位置
+    int mode;             // 録音 or 再生モード
+    
     
 };
 
