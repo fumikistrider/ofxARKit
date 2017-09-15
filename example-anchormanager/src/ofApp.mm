@@ -58,9 +58,11 @@ void ofApp::setup() {
     
     anchors = ARCore::ARAnchorManager::create(session);
 
+
     // Collision
     hitCount = 0;
     lastHitCount = 0;
+    hitId = 0;
     
     // Setup sound
     sampleRate = 44100;
@@ -69,6 +71,17 @@ void ofApp::setup() {
     recPos = 0;
     playPos = 0;
     
+//    sndobj.mode = 0;
+//    sndobj.recPos = 0;
+//    sndobj.playPos = 0;
+    
+    ARSoundObject s;
+    s.id = 0;
+    s.mode = 0;
+    s.recPos = 0;
+    s.playPos = 0;
+    sndArray.push_back(s);
+    lastId = 0;
 }
 
 
@@ -96,6 +109,7 @@ void ofApp::draw() {
     ofEnableDepthTest();
 
     hitCount = 0;
+    ARindex = 0;
     // This loops through all of the added anchors.
     anchors->loopAnchors([=](ARObject obj) -> void {
        
@@ -107,11 +121,11 @@ void ofApp::draw() {
         ofVec3f cameraPos = processor->getCameraTransformMatrix().getTranslation();
         ofVec3f objPos    = obj.modelMatrix.getTranslation();
         
-        cout << "-----" << endl;
-        cout << "CAMERA = " << cameraPos << endl;
-        cout << "OBJ    = " << objPos    << endl;
-        cout << " (DIST)= " << ofDist(cameraPos.x, cameraPos.y, cameraPos.z, objPos.x, objPos.y, objPos.z)    << endl;
-        cout << "-----" << endl;
+//        cout << "-----" << endl;
+//        cout << "CAMERA = " << cameraPos << endl;
+//        cout << "OBJ    = " << objPos    << endl;
+//        cout << " (DIST)= " << ofDist(cameraPos.x, cameraPos.y, cameraPos.z, objPos.x, objPos.y, objPos.z)    << endl;
+//        cout << "-----" << endl;
         
         ofRotate(90,0,0,1);
         ofScale(0.0001, 0.0001);
@@ -119,6 +133,9 @@ void ofApp::draw() {
         if( ofDist(cameraPos.x, cameraPos.y, cameraPos.z, objPos.x, objPos.y, objPos.z) < 0.05 ){
             ofSetColor(255, 255, 0, 255);
             hitCount++;
+            
+            hitId = ARindex;
+            
         }else{
             ofSetColor(255);
         }
@@ -129,16 +146,30 @@ void ofApp::draw() {
         
         camera.end();
         
+        ARindex++;
     });
 
-    if( mode != 1 && hitCount != lastHitCount ){
+    if( sndArray[0].mode != 1 && hitCount != lastHitCount ){
         
         if( hitCount > 0){
             playPos = 0;
             mode = 2;
+            
+//            sndobj.playPos = 0;
+//            sndobj.mode = 2;
+            
+            sndArray[hitId].playPos = 0;
+            sndArray[hitId].mode = 2;
+            
         }else{
             mode = 0;
             playPos = 0;
+            
+//            sndobj.mode = 0;
+//            sndobj.playPos = 0;
+            
+            sndArray[hitId].mode = 0;
+            sndArray[hitId].playPos = 0;
         }
         
     }
@@ -162,9 +193,9 @@ void ofApp::draw() {
     font.drawString("frame rate     = " + ofToString( ofGetFrameRate() ),   x, y+=p);
     font.drawString("screen width   = " + ofToString( ofGetWidth() ),       x, y+=p);
     font.drawString("screen height  = " + ofToString( ofGetHeight() ),      x, y+=p);
-    font.drawString("audio In       = " + ofToString( recPos ),             x, y+=p);
-    font.drawString("audio Out      = " + ofToString( playPos ),            x, y+=p);
-    font.drawString("play mode      = " + ofToString( mode ),               x, y+=p);
+    font.drawString("audio In[]     = " + ofToString( sndArray[lastId].recPos ),             x, y+=p);
+    font.drawString("audio Out[]    = " + ofToString( sndArray[hitId].playPos ),            x, y+=p);
+    font.drawString("play mode      = " + ofToString( sndArray[hitId].mode ),               x, y+=p);
     font.drawString("hit count      = " + ofToString( hitCount ),           x, y+=p);
     font.drawString("last hit count = " + ofToString( lastHitCount ),       x, y+=p);
 
@@ -179,7 +210,13 @@ void ofApp::exit() {
 void ofApp::touchDown(ofTouchEventArgs &touch){
     mode = 1;
     recPos = 0;
-    anchors->addAnchor(ofVec2f(touch.x,touch.y));
+    
+//    sndobj.mode = 1;
+//    sndobj.recPos = 0;
+    
+    sndArray[lastId].mode = 1;
+    sndArray[lastId].recPos = 0;
+    
 }
 
 //--------------------------------------------------------------
@@ -189,45 +226,64 @@ void ofApp::touchMoved(ofTouchEventArgs &touch){
 
 //--------------------------------------------------------------
 void ofApp::touchUp(ofTouchEventArgs &touch){
-
     mode = 0;
-    playPos = 0;
+    anchors->addAnchor(ofVec2f(touch.x,touch.y));
+    
+    //sndobj.mode = 0;
+    sndArray[lastId].mode = 0;
+
+    // 次のオブジェクトを準備
+    ARSoundObject s;
+    s.id = sndArray.size();
+    s.mode = 0;
+    s.recPos = 0;
+    s.playPos = 0;
+    sndArray.push_back(s);
+    lastId++;
 
 }
 
 //--------------------------------------------------------------
 void ofApp::touchDoubleTap(ofTouchEventArgs &touch){
-    mode = 0;
+    anchors->clearAnchors();
 }
 
 //--------------------------------------------------------------
 void ofApp::audioIn(float *input, int bufferSize, int nChannels){
-    
-    if( mode == 1){
-        for( int i = 0; i < bufferSize * nChannels; i++){
-            if(recPos < LENGTH){
-                buffer[recPos] = input[i];
-                recPos++;
-            }else{
-                recPos = 0;
-            }
-        }
-    }
+
+    sndArray[lastId].record(input, bufferSize, nChannels);
+    //sndobj.record(input, bufferSize, nChannels);
+//    if( mode == 1){
+//        for( int i = 0; i < bufferSize * nChannels; i++){
+//            if(recPos < LENGTH){
+//                buffer[recPos] = input[i];
+//                recPos++;
+//            }else{
+//                recPos = 0;
+//            }
+//        }
+//    }
 }
 
 //--------------------------------------------------------------
 void ofApp::audioOut(float *output, int bufferSize, int nChannels){
-    
-    if( mode == 2 ){
-        for(int i = 0; i < bufferSize * nChannels; i++) {
-            if(playPos<LENGTH) {
-                output[i] = buffer[playPos];
-                playPos++;
-            }else{
-                playPos= 0; // LOOP
-            }
-        }
-    }
+
+    //sndobj.play(output, bufferSize, nChannels);
+     sndArray[hitId].play(output, bufferSize, nChannels);
+//    if( mode == 2 ){
+//        for(int i = 0; i < bufferSize * nChannels; i++) {
+//            if(playPos<LENGTH) {
+//                output[i] = buffer[playPos];
+//                playPos++;
+//            }else{
+//                playPos= 0; // LOOP
+//            }
+//        }
+//    }else{
+//        for(int i = 0; i < bufferSize * nChannels; i++) {
+//            output[i] = 0;
+//        }
+//    }
 }
 
 
