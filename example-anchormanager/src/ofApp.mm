@@ -51,7 +51,7 @@ void ofApp::setup() {
     
     font.load("fonts/mono0755.ttf", fontSize);
     
-    
+    fbo.allocate(512, 512);
     
     processor = ARProcessor::create(session);
     processor->setup();
@@ -108,6 +108,21 @@ void ofApp::draw() {
     processor->draw();
     ofEnableDepthTest();
 
+    fbo.begin();
+    ofClear(255, 255, 255, 0);
+    ofPushMatrix();
+    ofPushStyle();
+    ofSetColor(255, 255, 255);
+    ofTranslate(256, 256);
+    ofRotate( ofGetFrameNum() );
+    //ofDrawRectangle(-128, -128, 256, 256);
+    ofNoFill();
+    //ofDrawBox(0, 0, 0, 128);
+    ofDrawSphere(0, 0, 200);
+    ofPopStyle();
+    ofPopMatrix();
+    fbo.end();
+    
     hitCount = 0;
     ARindex = 0;
     // This loops through all of the added anchors.
@@ -139,7 +154,8 @@ void ofApp::draw() {
         }else{
             ofSetColor(255);
         }
-        img.draw(0,0);
+        img.draw(0, 0);
+        fbo.draw(-128, -128);
         ofSetColor(255);
 
         ofPopMatrix();
@@ -149,7 +165,7 @@ void ofApp::draw() {
         ARindex++;
     });
 
-    if( sndArray[0].mode != 1 && hitCount != lastHitCount ){
+    if( sndArray[hitId].mode != 1 && hitCount != lastHitCount ){
         
         if( hitCount > 0){
             playPos = 0;

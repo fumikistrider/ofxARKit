@@ -121,6 +121,8 @@ public:
     
     //vector<float[]> bufferArray;
     
+    ofFbo fbo;
+    
 };
 
 
