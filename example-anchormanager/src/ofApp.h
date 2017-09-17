@@ -6,6 +6,90 @@
 
 #define LENGTH 44100 * 3
 
+class ARWaveformObject {
+public:
+    vector<float> buffers;
+    vector<ofVec3f> translations;
+    int position;
+    int mode;
+
+    // methods
+    void hitTest(ofVec3f pos){
+    }
+    
+    void record(float * input, int bufferSize, int nChannels){
+        
+        if( mode == 1){
+            for( int i = 0; i < bufferSize * nChannels; i++){
+                buffers.push_back(input[i]);
+            }
+        }
+        
+    }
+    
+
+};
+
+class ARSoundObject {
+public:
+    
+    int id;
+    float buffer [LENGTH];
+    int recPos;
+    int playPos;
+    int mode;
+    
+    int endPos;
+    
+    
+    // methods
+    void record(float * input, int bufferSize, int nChannels){
+        
+        if( mode == 1){
+            for( int i = 0; i < bufferSize * nChannels; i++){
+                if(recPos < LENGTH){
+                    buffer[recPos] = input[i];
+                    recPos++;
+                    endPos = recPos;
+                }else{
+                    recPos = 0;
+                }
+            }
+        }
+    }
+
+    void play(float * output, int bufferSize, int nChannels){
+
+        if( mode == 2 ){
+            
+            if( playPos < endPos){
+            
+                for(int i = 0; i < bufferSize * nChannels; i++) {
+                    if(playPos < LENGTH ) {
+                        output[i] = buffer[playPos];
+                        playPos++;
+                    }else{
+                        playPos= 0; // LOOP
+                    }
+                }
+                
+            }else{
+                for(int i = 0; i < bufferSize * nChannels; i++) {
+                    output[i] = 0;
+                }
+            }
+            
+        }else{
+            for(int i = 0; i < bufferSize * nChannels; i++) {
+                output[i] = 0;
+            }
+        }
+
+    }
+
+    
+};
+
 class ofApp : public ofxiOSApp {
     
 public:
@@ -43,17 +127,36 @@ public:
     
     ofImage img;
     
+    int lastId;
+    int ARindex;  // temporary id
+    
     // Collision
     int hitCount;
     int lastHitCount;
-    
+    int hitId;
+
     // Sound
+    vector<ARSoundObject> sndArray;
     float buffer[LENGTH]; // 録音バッファ
     int sampleRate;       // サンプリングレート
     int recPos;           // 録音位置
     int playPos;          // 再生位置
     int mode;             // 録音 or 再生モード
+
+    vector<float> waveformBuffer;
+    vector<ofVec3f> waveformTranslation;
+    int waveformPlayPos;
+    int waveformMode;
+    float waveformNearestDist;
     
+    ofFbo fbo;
+    
+    
+    // adhoc util vars
+    int recStartTime;
+    bool isRecording;
+    float nearestDist;
+    bool isWaveform;
     
 };
 

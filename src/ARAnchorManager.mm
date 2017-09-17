@@ -74,7 +74,8 @@ namespace ARCore {
             translation.columns[3].y = pos.x * 0.01;
             
             // set z
-            translation.columns[3].z = -0.2;
+            //translation.columns[3].z = -0.2;
+            translation.columns[3].z = -0.1;
             
             // multiply translation by current camera position
             matrix_float4x4 transform = matrix_multiply(session.currentFrame.camera.transform, translation);
