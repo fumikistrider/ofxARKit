@@ -6,6 +6,30 @@
 
 #define LENGTH 44100 * 3
 
+class ARWaveformObject {
+public:
+    vector<float> buffers;
+    vector<ofVec3f> translations;
+    int position;
+    int mode;
+
+    // methods
+    void hitTest(ofVec3f pos){
+    }
+    
+    void record(float * input, int bufferSize, int nChannels){
+        
+        if( mode == 1){
+            for( int i = 0; i < bufferSize * nChannels; i++){
+                buffers.push_back(input[i]);
+            }
+        }
+        
+    }
+    
+
+};
+
 class ARSoundObject {
 public:
     
@@ -16,6 +40,7 @@ public:
     int mode;
     
     int endPos;
+    
     
     // methods
     void record(float * input, int bufferSize, int nChannels){
@@ -103,25 +128,35 @@ public:
     ofImage img;
     
     int lastId;
-    int ARindex;
+    int ARindex;  // temporary id
     
     // Collision
     int hitCount;
-    int hitId;
     int lastHitCount;
-    
+    int hitId;
+
     // Sound
-    //ARSoundObject sndobj;
     vector<ARSoundObject> sndArray;
     float buffer[LENGTH]; // 録音バッファ
     int sampleRate;       // サンプリングレート
     int recPos;           // 録音位置
     int playPos;          // 再生位置
     int mode;             // 録音 or 再生モード
-    
-    //vector<float[]> bufferArray;
+
+    vector<float> waveformBuffer;
+    vector<ofVec3f> waveformTranslation;
+    int waveformPlayPos;
+    int waveformMode;
+    float waveformNearestDist;
     
     ofFbo fbo;
+    
+    
+    // adhoc util vars
+    int recStartTime;
+    bool isRecording;
+    float nearestDist;
+    bool isWaveform;
     
 };
 
